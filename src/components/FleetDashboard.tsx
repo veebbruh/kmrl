@@ -133,11 +133,14 @@ export default function FleetDashboard({ trainsets }: FleetDashboardProps) {
                   className={`card ${optimizedStatus} relative overflow-hidden cursor-pointer ${optimizationResult ? 'ring-2 ring-green-400 ring-opacity-50' : ''}`}
                   onClick={() => setSelectedTrainset(trainset)}
                 >
+<<<<<<< HEAD
                   {optimizationResult && (
                     <div className="absolute top-2 right-2 z-10">
                       <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-lg"></div>
                     </div>
                   )}
+=======
+>>>>>>> be93647e834d61235dab0c0ea1d65822760b9fbb
                   <div className="first-content">
                     <div className="flex items-center space-x-2 mb-2">
                       <div className="w-4 h-4 rounded-full bg-white bg-opacity-30"></div>
@@ -146,11 +149,16 @@ export default function FleetDashboard({ trainsets }: FleetDashboardProps) {
                     <StatusIcon className="w-8 h-8 text-white mb-2" />
                     <span className="text-white text-sm capitalize font-semibold">{optimizedStatus}</span>
                     {optimizationResult && optimizedStatus !== trainset.status && (
+<<<<<<< HEAD
                       <div className="mt-2 p-2 bg-white bg-opacity-10 backdrop-blur-sm rounded-lg border border-white border-opacity-20 shadow-lg">
                         <div className="flex items-center space-x-2 text-xs text-white">
                           <Clock className="w-3 h-3 opacity-80" />
                           <span className="font-medium opacity-90">Was: {trainset.status}</span>
                         </div>
+=======
+                      <div className="text-xs text-yellow-200 opacity-80">
+                        Was: {trainset.status}
+>>>>>>> be93647e834d61235dab0c0ea1d65822760b9fbb
                       </div>
                     )}
                   </div>
@@ -436,6 +444,7 @@ export default function FleetDashboard({ trainsets }: FleetDashboardProps) {
                   </div>
                 )}
 
+<<<<<<< HEAD
                 {/* Optimization Details Section */}
                 {optimizationResult && (
                   <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900 dark:to-blue-900 rounded-lg p-4 border border-green-200 dark:border-green-700">
@@ -531,6 +540,8 @@ export default function FleetDashboard({ trainsets }: FleetDashboardProps) {
                   </div>
                 )}
 
+=======
+>>>>>>> be93647e834d61235dab0c0ea1d65822760b9fbb
                 {/* Additional Info */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex items-center space-x-4">

@@ -32,7 +32,10 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     
     // Create realistic optimization based on actual trainset data
     const result: OptimizationResult = {
+<<<<<<< HEAD
       timestamp: new Date().toISOString(),
+=======
+>>>>>>> be93647e834d61235dab0c0ea1d65822760b9fbb
       schedule: trainsets.map((trainset, index) => {
         // Determine assignment based on trainset status and constraints
         let assignment: 'service' | 'standby' | 'maintenance' = 'standby';
@@ -78,6 +81,7 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       conflicts: []
     };
 
+<<<<<<< HEAD
     // Calculate individual train-specific metrics
     const calculateTrainMetrics = (trainset: Trainset, assignment: string) => {
       const now = new Date();
@@ -139,6 +143,9 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
     
     // Calculate fleet-wide metrics
+=======
+    // Calculate metrics based on assignments
+>>>>>>> be93647e834d61235dab0c0ea1d65822760b9fbb
     const serviceCount = result.schedule.filter(s => s.assignment === 'service').length;
     const maintenanceCount = result.schedule.filter(s => s.assignment === 'maintenance').length;
     const standbyCount = result.schedule.filter(s => s.assignment === 'standby').length;
@@ -150,6 +157,7 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       mileageBalance: 89.6,
       overallScore: ((serviceCount * 0.4) + (standbyCount * 0.3) + (maintenanceCount * 0.3)) / trainsets.length * 100
     };
+<<<<<<< HEAD
     
     // Add individual train metrics to each schedule item
     result.schedule = result.schedule.map(scheduleItem => {
@@ -164,6 +172,8 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
       return scheduleItem;
     });
+=======
+>>>>>>> be93647e834d61235dab0c0ea1d65822760b9fbb
 
     // Identify conflicts
     result.conflicts = trainsets
