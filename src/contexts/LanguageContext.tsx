@@ -51,6 +51,10 @@ const translations: Record<SupportedLanguage, Record<string, string>> = {
     'scheduling.optimizationMetrics': 'Optimization Metrics',
     'scheduling.conflicts': 'Conflicts & Recommendations',
     'scheduling.recommendedSchedule': 'Recommended Schedule',
+    'maintenance.title': 'Maintenance Hub',
+    'maintenance.comingSoon': 'Comprehensive maintenance management interface coming soon...',
+    'staff.title': 'Staff Management',
+    'staff.comingSoon': 'Staff scheduling and resource allocation features coming soon...',
   },
   ml: {
     'app.title': 'കെഎംആർഎൽ ഓപ്പറേഷൻസ് സെന്റർ',
@@ -94,6 +98,10 @@ const translations: Record<SupportedLanguage, Record<string, string>> = {
     'scheduling.optimizationMetrics': 'ഓപ്റ്റിമൈസേഷൻ മെട്രിക്സ്',
     'scheduling.conflicts': 'സംഘർഷങ്ങളും നിർദ്ദേശങ്ങളും',
     'scheduling.recommendedSchedule': 'ശുപാർശ ചെയ്ത ഷെഡ്യൂൾ',
+    'maintenance.title': 'മെൻറനൻസ് ഹബ്',
+    'maintenance.comingSoon': 'വിശാലമായ മെൻറനൻസ് മാനേജ്‌മെന്റ് ഇന്റർഫേസ് ഉടനെ വരുന്നു...',
+    'staff.title': 'സ്റ്റാഫ് മാനേജ്‌മെന്റ്',
+    'staff.comingSoon': 'സ്റ്റാഫ് ഷെഡ്യൂളിംഗ്, റിസോഴ്സ് അലോക്കേഷൻ സവിശേഷതകൾ ഉടനെ വരുന്നു...',
   },
 };
 

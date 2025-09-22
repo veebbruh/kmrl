@@ -4,9 +4,11 @@ import FleetDashboard from './components/FleetDashboard';
 import SchedulingEngine from './components/SchedulingEngine';
 import Analytics from './components/Analytics';
 import { mockTrainsets } from './data/mockData';
+import { useLanguage } from './contexts/LanguageContext';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
+  const { t } = useLanguage();
 
   const renderContent = () => {
     switch (currentView) {
@@ -19,15 +21,15 @@ function App() {
       case 'maintenance':
         return (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Maintenance Hub</h2>
-            <p className="text-gray-600 dark:text-gray-300">Comprehensive maintenance management interface coming soon...</p>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">{t('maintenance.title')}</h2>
+            <p className="text-gray-600 dark:text-gray-300">{t('maintenance.comingSoon')}</p>
           </div>
         );
       case 'staff':
         return (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Staff Management</h2>
-            <p className="text-gray-600 dark:text-gray-300">Staff scheduling and resource allocation features coming soon...</p>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">{t('staff.title')}</h2>
+            <p className="text-gray-600 dark:text-gray-300">{t('staff.comingSoon')}</p>
           </div>
         );
       default:
