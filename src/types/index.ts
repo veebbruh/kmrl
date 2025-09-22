@@ -71,11 +71,8 @@ export interface OptimizationResult {
     assignment: 'service' | 'standby' | 'maintenance';
     reasoning: string[];
     confidence: number;
-<<<<<<< HEAD
     serviceReadiness?: number;
     overallScore?: number;
-=======
->>>>>>> be93647e834d61235dab0c0ea1d65822760b9fbb
   }[];
   metrics: {
     serviceReadiness: number;
@@ -90,8 +87,5 @@ export interface OptimizationResult {
     severity: 'critical' | 'warning';
     resolution: string;
   }[];
-<<<<<<< HEAD
   timestamp: string;
-=======
->>>>>>> be93647e834d61235dab0c0ea1d65822760b9fbb
 }
