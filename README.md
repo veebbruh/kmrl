@@ -8,6 +8,7 @@ A modern, bilingual web application for Kochi Metro Rail Limited (KMRL) operatio
 - **Fleet Dashboard**: Real-time monitoring of 25 trainsets with status tracking
 - **AI Scheduling Engine**: Multi-objective optimization for train assignments
 - **Analytics Dashboard**: Performance metrics and KPI tracking
+- **Fitness Certificates**: Comprehensive certificate management system
 - **Maintenance Hub**: Comprehensive maintenance management interface
 - **Staff Management**: Resource allocation and scheduling
 - **Chatbot Assistant**: Interactive help and support system
@@ -52,15 +53,18 @@ src/
 │   ├── Analytics.tsx    # Performance analytics dashboard
 │   ├── Chatbot.tsx      # Interactive chatbot interface
 │   ├── FleetDashboard.tsx # Main fleet monitoring dashboard
+│   ├── FitnessCertificatePanel.tsx # Fitness certificate display component
+│   ├── FitnessCertificatesSection.tsx # Dedicated fitness certificates section
 │   ├── Layout.tsx       # Application layout and navigation
 │   └── SchedulingEngine.tsx # AI scheduling interface
 ├── contexts/            # React Context providers
 │   ├── DarkModeContext.tsx # Theme management
-│   └── LanguageContext.tsx # Internationalization
+│   ├── LanguageContext.tsx # Internationalization
+│   └── OptimizationContext.tsx # AI optimization state management
 ├── data/               # Mock data and constants
-│   └── mockData.ts     # Sample trainset data
+│   └── mockData.ts     # Sample trainset data with fitness certificates
 ├── types/              # TypeScript type definitions
-│   └── index.ts        # Core data models
+│   └── index.ts        # Core data models including FitnessCertificate
 ├── App.tsx             # Main application component
 ├── main.tsx            # Application entry point
 └── index.css           # Global styles and Tailwind imports
@@ -76,8 +80,8 @@ src/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Sahir-2415/Kochi_SIH_model.git
-   cd Kochi_SIH_model
+   git clone https://github.com/veebbruh/kmrl.git
+   cd kmrl
    ```
 
 2. **Install dependencies**
@@ -105,14 +109,26 @@ npm run preview
 ### Fleet Dashboard
 - Real-time status monitoring of all 25 trainsets
 - Interactive train cards with detailed information
-- Status-based color coding (service, standby, maintenance, etc.)
+- Status-based color coding (service, standby, maintenance, cleaning, inspection)
 - Modal popups with comprehensive train details
+- Fitness certificate status indicators
+- Navigation to dedicated fitness certificates section
 
 ### AI Scheduling Engine
 - Multi-objective optimization algorithm
 - Constraint-based scheduling with explainable AI
 - Performance metrics and confidence scoring
+- Individual train metrics calculation (service readiness, overall score)
 - Conflict detection and resolution suggestions
+- Reset functionality for optimization
+
+### Fitness Certificates System
+- Comprehensive certificate management for Rolling Stock, Signalling, and Telecom departments
+- Real-time status tracking (valid, expiring soon, expired, suspended)
+- Search, filter, and sort capabilities
+- Detailed certificate information with conditions and inspection dates
+- Priority-based categorization (critical, high, medium, low)
+- Compact and detailed view modes
 
 ### Analytics Dashboard
 - KPI tracking with trend indicators
@@ -152,7 +168,27 @@ interface Trainset {
   location: string;
   mileage: number;
   currentIssues: Issue[];
+  fitnessCertificates: FitnessCertificate[];
   metroLine?: MetroLineInfo;
+}
+```
+
+### Fitness Certificate Interface
+```typescript
+interface FitnessCertificate {
+  id: string;
+  trainsetId: string;
+  department: 'rolling_stock' | 'signalling' | 'telecom';
+  issuedDate: string;
+  expiryDate: string;
+  validityDays: number;
+  status: 'valid' | 'expiring_soon' | 'expired' | 'suspended';
+  issuedBy: string;
+  certificateNumber: string;
+  conditions: string[];
+  lastInspection: string;
+  nextInspection: string;
+  priority: 'critical' | 'high' | 'medium' | 'low';
 }
 ```
 
@@ -162,6 +198,7 @@ interface OptimizationResult {
   schedule: ScheduleItem[];
   metrics: PerformanceMetrics;
   conflicts: Conflict[];
+  timestamp: string;
 }
 ```
 
