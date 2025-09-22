@@ -1,61 +1,20 @@
 import React, { useState } from 'react';
 import { Brain, Play, RotateCcw, Target, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Trainset, OptimizationResult } from '../types';
+import { Trainset } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useOptimization } from '../contexts/OptimizationContext';
 
 interface SchedulingEngineProps {
   trainsets: Trainset[];
 }
 
 export default function SchedulingEngine({ trainsets }: SchedulingEngineProps) {
-  const [isOptimizing, setIsOptimizing] = useState(false);
-  const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
   const { t } = useLanguage();
+  const { optimizationResult, runOptimization, isOptimizing } = useOptimization();
 
-  const runOptimization = async () => {
-    setIsOptimizing(true);
-    
-    // Simulate AI optimization process
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    const mockResult: OptimizationResult = {
-      schedule: trainsets.slice(0, 15).map((trainset, index) => ({
-        trainsetId: trainset.id,
-        assignment: index < 12 ? 'service' : index < 14 ? 'standby' : 'maintenance',
-        reasoning: [
-          'Fitness certificate valid until tomorrow',
-          'Mileage within optimal range',
-          'No critical maintenance issues',
-          'Branding contract requirements met'
-        ],
-        confidence: 0.85 + Math.random() * 0.14
-      })),
-      metrics: {
-        serviceReadiness: 95.2,
-        maintenanceCompliance: 98.7,
-        brandingCompliance: 92.4,
-        mileageBalance: 89.6,
-        overallScore: 93.9
-      },
-      conflicts: [
-        {
-          trainsetId: '003',
-          issue: 'Fitness certificate expires in 6 hours',
-          severity: 'warning',
-          resolution: 'Schedule for standby, arrange renewal'
-        },
-        {
-          trainsetId: '017',
-          issue: 'Critical signaling system fault',
-          severity: 'critical',
-          resolution: 'Immediate maintenance required'
-        }
-      ]
-    };
-    
-    setOptimizationResult(mockResult);
-    setIsOptimizing(false);
+  const handleRunOptimization = async () => {
+    await runOptimization(trainsets);
   };
 
   return (
@@ -73,7 +32,7 @@ export default function SchedulingEngine({ trainsets }: SchedulingEngineProps) {
               <span>{t('scheduling.reset')}</span>
             </button>
             <button 
-              onClick={runOptimization}
+              onClick={handleRunOptimization}
               disabled={isOptimizing}
               className="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center space-x-2 disabled:opacity-50"
             >

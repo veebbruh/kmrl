@@ -3,7 +3,6 @@ import Layout from './components/Layout';
 import FleetDashboard from './components/FleetDashboard';
 import SchedulingEngine from './components/SchedulingEngine';
 import Analytics from './components/Analytics';
-import Chatbot from './components/Chatbot';
 import { mockTrainsets } from './data/mockData';
 
 function App() {
@@ -17,8 +16,6 @@ function App() {
         return <SchedulingEngine trainsets={mockTrainsets} />;
       case 'analytics':
         return <Analytics />;
-      case 'chatbot':
-        return <Chatbot />;
       case 'maintenance':
         return (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">

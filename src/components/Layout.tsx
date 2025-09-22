@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Train, Settings, BarChart3, Calendar, Users, Bell, Sun, Moon, MapPin, Bot } from 'lucide-react';
+import { Train, Settings, BarChart3, Calendar, Users, Bell, Sun, Moon, MapPin } from 'lucide-react';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import FloatingChatbot from './FloatingChatbot';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -21,7 +22,6 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
     { id: 'analytics', label: t('nav.analytics'), icon: BarChart3 },
     { id: 'maintenance', label: t('nav.maintenance'), icon: Settings },
     { id: 'staff', label: t('nav.staff'), icon: Users },
-    { id: 'chatbot', label: t('nav.chatbot'), icon: Bot },
   ];
 
   // Update time every second
@@ -143,6 +143,9 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
           {children}
         </main>
       </div>
+
+      {/* Floating Chatbot Button */}
+      <FloatingChatbot />
     </div>
   );
 }

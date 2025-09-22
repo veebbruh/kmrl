@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { DarkModeProvider } from './contexts/DarkModeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { OptimizationProvider } from './contexts/OptimizationContext';
 import './index.css';
 
 const rootEl = document.getElementById('root')!;
@@ -10,7 +11,9 @@ createRoot(rootEl).render(
   <StrictMode>
     <LanguageProvider>
       <DarkModeProvider>
-        <App />
+        <OptimizationProvider>
+          <App />
+        </OptimizationProvider>
       </DarkModeProvider>
     </LanguageProvider>
   </StrictMode>

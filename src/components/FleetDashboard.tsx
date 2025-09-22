@@ -3,6 +3,7 @@ import { Train, AlertTriangle, CheckCircle, Clock, Wrench, Navigation, MapPin, U
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trainset } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useOptimization } from '../contexts/OptimizationContext';
 
 interface FleetDashboardProps {
   trainsets: Trainset[];
@@ -11,6 +12,7 @@ interface FleetDashboardProps {
 export default function FleetDashboard({ trainsets }: FleetDashboardProps) {
   const [selectedTrainset, setSelectedTrainset] = useState<Trainset | null>(null);
   const { t } = useLanguage();
+  const { optimizationResult, getStatusCounts, getCriticalIssuesCount } = useOptimization();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -34,12 +36,13 @@ export default function FleetDashboard({ trainsets }: FleetDashboardProps) {
     }
   };
 
-  const statusCounts = trainsets.reduce((acc, trainset) => {
+  // Use optimization results if available, otherwise fall back to current status
+  const statusCounts = optimizationResult ? getStatusCounts() : trainsets.reduce((acc, trainset) => {
     acc[trainset.status] = (acc[trainset.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  const criticalIssues = trainsets
+  const criticalIssues = optimizationResult ? getCriticalIssuesCount() : trainsets
     .flatMap(t => t.currentIssues.filter(i => i.severity === 'critical'))
     .length;
 
@@ -99,21 +102,35 @@ export default function FleetDashboard({ trainsets }: FleetDashboardProps) {
       {/* Fleet Status Grid */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.liveFleetStatus')}</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{t('dashboard.realtimeStatus')}</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.liveFleetStatus')}</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                {optimizationResult ? 'AI-Optimized Schedule Applied' : t('dashboard.realtimeStatus')}
+              </p>
+            </div>
+            {optimizationResult && (
+              <div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>Optimized</span>
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 justify-items-center">
             {trainsets.map((trainset, index) => {
-              const StatusIcon = getStatusIcon(trainset.status);
+              // Use optimized status if available, otherwise use current status
+              const optimizedStatus = optimizationResult?.schedule.find(s => s.trainsetId === trainset.id)?.assignment || trainset.status;
+              const StatusIcon = getStatusIcon(optimizedStatus);
               return (
                 <motion.div 
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: 0.05 + index * 0.03 }}
                   key={trainset.id} 
-                  className={`card ${trainset.status} relative overflow-hidden cursor-pointer`}
+                  className={`card ${optimizedStatus} relative overflow-hidden cursor-pointer ${optimizationResult ? 'ring-2 ring-green-400 ring-opacity-50' : ''}`}
                   onClick={() => setSelectedTrainset(trainset)}
                 >
                   <div className="first-content">
@@ -122,7 +139,12 @@ export default function FleetDashboard({ trainsets }: FleetDashboardProps) {
                       <span className="text-white font-bold text-lg">Train {trainset.number}</span>
                     </div>
                     <StatusIcon className="w-8 h-8 text-white mb-2" />
-                    <span className="text-white text-sm capitalize font-semibold">{trainset.status}</span>
+                    <span className="text-white text-sm capitalize font-semibold">{optimizedStatus}</span>
+                    {optimizationResult && optimizedStatus !== trainset.status && (
+                      <div className="text-xs text-yellow-200 opacity-80">
+                        Was: {trainset.status}
+                      </div>
+                    )}
                   </div>
                   
                   <div className="second-content text-white text-left">
