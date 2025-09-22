@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Train, Settings, BarChart3, Calendar, Users, Bell, Sun, Moon, MapPin } from 'lucide-react';
+import { Train, Settings, BarChart3, Calendar, Users, Bell, Sun, Moon, MapPin, Shield } from 'lucide-react';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import FloatingChatbot from './FloatingChatbot';
@@ -20,6 +20,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
     { id: 'dashboard', label: t('nav.dashboard'), icon: Train },
     { id: 'scheduling', label: t('nav.scheduling'), icon: Calendar },
     { id: 'analytics', label: t('nav.analytics'), icon: BarChart3 },
+    { id: 'fitness', label: t('nav.fitness'), icon: Shield },
     { id: 'maintenance', label: t('nav.maintenance'), icon: Settings },
     { id: 'staff', label: t('nav.staff'), icon: Users },
   ];

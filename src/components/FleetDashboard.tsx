@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import { Train, AlertTriangle, CheckCircle, Clock, Wrench, Navigation, MapPin, Users, Wifi, X } from 'lucide-react';
+import { Train, AlertTriangle, CheckCircle, Clock, Wrench, Navigation, MapPin, Users, Wifi, X, Shield, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trainset } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useOptimization } from '../contexts/OptimizationContext';
+import FitnessCertificatePanel from './FitnessCertificatePanel';
 
 interface FleetDashboardProps {
   trainsets: Trainset[];
+  onNavigateToFitness?: (trainsetId: string) => void;
 }
 
-export default function FleetDashboard({ trainsets }: FleetDashboardProps) {
+export default function FleetDashboard({ trainsets, onNavigateToFitness }: FleetDashboardProps) {
   const [selectedTrainset, setSelectedTrainset] = useState<Trainset | null>(null);
   const { t } = useLanguage();
   const { optimizationResult, getStatusCounts, getCriticalIssuesCount } = useOptimization();
@@ -139,9 +141,24 @@ export default function FleetDashboard({ trainsets }: FleetDashboardProps) {
                     </div>
                   )}
                   <div className="first-content">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-4 h-4 rounded-full bg-white bg-opacity-30"></div>
-                      <span className="text-white font-bold text-lg">Train {trainset.number}</span>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 rounded-full bg-white bg-opacity-30"></div>
+                        <span className="text-white font-bold text-lg">Train {trainset.number}</span>
+                      </div>
+                      {(() => {
+                        const expiredCerts = trainset.fitnessCertificates.filter(cert => cert.status === 'expired');
+                        const expiringSoonCerts = trainset.fitnessCertificates.filter(cert => cert.status === 'expiring_soon');
+                        const suspendedCerts = trainset.fitnessCertificates.filter(cert => cert.status === 'suspended');
+                        
+                        if (expiredCerts.length > 0 || suspendedCerts.length > 0) {
+                          return <XCircle className="w-4 h-4 text-red-300" />;
+                        } else if (expiringSoonCerts.length > 0) {
+                          return <Clock className="w-4 h-4 text-yellow-300" />;
+                        } else {
+                          return <Shield className="w-4 h-4 text-green-300" />;
+                        }
+                      })()}
                     </div>
                     <StatusIcon className="w-8 h-8 text-white mb-2" />
                     <span className="text-white text-sm capitalize font-semibold">{optimizedStatus}</span>
@@ -530,6 +547,34 @@ export default function FleetDashboard({ trainsets }: FleetDashboardProps) {
                     })()}
                   </div>
                 )}
+
+                {/* Fitness Certificates Section */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                      <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      <span>Fitness Certificates</span>
+                    </h4>
+                    <button
+                      onClick={() => {
+                        if (onNavigateToFitness && selectedTrainset) {
+                          onNavigateToFitness(selectedTrainset.id);
+                        } else {
+                          alert('Navigate to Fitness Certificates section to view full details');
+                        }
+                      }}
+                      className="inline-flex items-center space-x-1 px-3 py-1.5 bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <span>View Full Details</span>
+                      <span>→</span>
+                    </button>
+                  </div>
+                  <FitnessCertificatePanel 
+                    certificates={selectedTrainset.fitnessCertificates} 
+                    trainsetNumber={selectedTrainset.number}
+                    compact={true}
+                  />
+                </div>
 
                 {/* Additional Info */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">

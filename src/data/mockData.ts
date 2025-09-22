@@ -1,4 +1,71 @@
-import { Trainset, Issue } from '../types';
+import { Trainset, Issue, FitnessCertificate } from '../types';
+
+// Helper function to generate fitness certificates
+const generateFitnessCertificates = (trainsetId: string): FitnessCertificate[] => {
+  const departments: ('rolling_stock' | 'signalling' | 'telecom')[] = ['rolling_stock', 'signalling', 'telecom'];
+  const now = new Date();
+  
+  return departments.map((dept, index) => {
+    // Generate more valid certificates by using longer validity periods and recent issuance
+    const validityDays = dept === 'rolling_stock' ? 30 : (dept === 'signalling' ? 15 : 7);
+    
+    // 80% chance of valid certificate, 15% expiring soon, 5% expired/suspended
+    const randomStatus = Math.random();
+    let status: 'valid' | 'expiring_soon' | 'expired' | 'suspended' = 'valid';
+    let issuedDate: Date;
+    let expiryDate: Date;
+    
+    if (randomStatus < 0.8) {
+      // Valid certificate - issued recently with good validity remaining
+      const daysAgo = Math.random() * 5; // Issued 0-5 days ago
+      issuedDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+      expiryDate = new Date(issuedDate.getTime() + validityDays * 24 * 60 * 60 * 1000);
+      status = 'valid';
+    } else if (randomStatus < 0.95) {
+      // Expiring soon - issued some time ago, expiring within 24 hours
+      const daysAgo = validityDays - (Math.random() * 2 + 0.5); // Close to expiry
+      issuedDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+      expiryDate = new Date(issuedDate.getTime() + validityDays * 24 * 60 * 60 * 1000);
+      status = 'expiring_soon';
+    } else {
+      // Expired or suspended - issued long ago
+      const daysAgo = validityDays + Math.random() * 10 + 1; // Past expiry
+      issuedDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+      expiryDate = new Date(issuedDate.getTime() + validityDays * 24 * 60 * 60 * 1000);
+      status = Math.random() < 0.7 ? 'expired' : 'suspended';
+    }
+    
+    const hoursUntilExpiry = (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+    
+    const priority = hoursUntilExpiry < 12 ? 'critical' : 
+                    hoursUntilExpiry < 24 ? 'high' : 
+                    hoursUntilExpiry < 48 ? 'medium' : 'low';
+    
+    const conditions = [
+      'All safety systems operational',
+      'Communication systems tested',
+      'Brake system within limits',
+      'Door operation verified',
+      'HVAC system functional'
+    ];
+    
+    return {
+      id: `fc-${trainsetId}-${dept}-${index + 1}`,
+      trainsetId,
+      department: dept,
+      issuedDate: issuedDate.toISOString(),
+      expiryDate: expiryDate.toISOString(),
+      validityDays,
+      status,
+      issuedBy: `Inspector ${dept.charAt(0).toUpperCase() + dept.slice(1)}`,
+      certificateNumber: `FC-${dept.toUpperCase()}-${trainsetId}-${Date.now()}`,
+      conditions,
+      lastInspection: issuedDate.toISOString(),
+      nextInspection: new Date(expiryDate.getTime() - 24 * 60 * 60 * 1000).toISOString(),
+      priority
+    };
+  });
+};
 
 export const mockTrainsets: Trainset[] = Array.from({ length: 25 }, (_, index) => {
   const number = String(index + 1).padStart(3, '0');
@@ -120,6 +187,7 @@ export const mockTrainsets: Trainset[] = Array.from({ length: 25 }, (_, index) =
     lastMaintenance: new Date(Date.now() - Math.random() * 2592000000).toISOString().split('T')[0],
     nextMaintenance: new Date(Date.now() + Math.random() * 2592000000).toISOString().split('T')[0],
     fitnessExpiry: new Date(Date.now() + Math.random() * 86400000 * 30).toISOString().split('T')[0],
+    fitnessCertificates: generateFitnessCertificates(`train-${number}`),
     branding: Math.random() > 0.6 ? {
       advertiser: ['Coca-Cola', 'Samsung', 'Reliance', 'BSNL', 'Kerala Tourism'][Math.floor(Math.random() * 5)],
       contractHours: Math.floor(100 + Math.random() * 500),

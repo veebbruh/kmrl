@@ -3,21 +3,33 @@ import Layout from './components/Layout';
 import FleetDashboard from './components/FleetDashboard';
 import SchedulingEngine from './components/SchedulingEngine';
 import Analytics from './components/Analytics';
+import FitnessCertificatesSection from './components/FitnessCertificatesSection';
 import { mockTrainsets } from './data/mockData';
 import { useLanguage } from './contexts/LanguageContext';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [selectedTrainsetId, setSelectedTrainsetId] = useState<string | null>(null);
   const { t } = useLanguage();
 
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
-        return <FleetDashboard trainsets={mockTrainsets} />;
+        return (
+          <FleetDashboard 
+            trainsets={mockTrainsets} 
+            onNavigateToFitness={(trainsetId) => {
+              setSelectedTrainsetId(trainsetId);
+              setCurrentView('fitness');
+            }}
+          />
+        );
       case 'scheduling':
         return <SchedulingEngine trainsets={mockTrainsets} />;
       case 'analytics':
         return <Analytics />;
+      case 'fitness':
+        return <FitnessCertificatesSection trainsets={mockTrainsets} selectedTrainsetId={selectedTrainsetId} />;
       case 'maintenance':
         return (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">

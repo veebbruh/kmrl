@@ -5,6 +5,7 @@ interface OptimizationContextType {
   optimizationResult: OptimizationResult | null;
   setOptimizationResult: (result: OptimizationResult | null) => void;
   runOptimization: (trainsets: Trainset[]) => Promise<OptimizationResult>;
+  resetOptimization: () => void;
   isOptimizing: boolean;
   getStatusCounts: () => Record<string, number>;
   getCriticalIssuesCount: () => number;
@@ -35,30 +36,66 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       timestamp: new Date().toISOString(),
       schedule: trainsets.map((trainset, index) => {
         // Determine assignment based on trainset status and constraints
-        let assignment: 'service' | 'standby' | 'maintenance' = 'standby';
+        let assignment: 'service' | 'standby' | 'maintenance' | 'cleaning' = 'standby';
         const reasoning: string[] = [];
         
-        // Check fitness certificate
-        const fitnessExpiry = new Date(trainset.fitnessExpiry);
+        // Check fitness certificates
         const now = new Date();
-        const hoursUntilExpiry = (fitnessExpiry.getTime() - now.getTime()) / (1000 * 60 * 60);
+        const expiredCerts = trainset.fitnessCertificates.filter(cert => cert.status === 'expired');
+        const expiringSoonCerts = trainset.fitnessCertificates.filter(cert => cert.status === 'expiring_soon');
+        const suspendedCerts = trainset.fitnessCertificates.filter(cert => cert.status === 'suspended');
+        const validCerts = trainset.fitnessCertificates.filter(cert => cert.status === 'valid');
         
-        if (hoursUntilExpiry < 24) {
+        if (expiredCerts.length > 0 || suspendedCerts.length > 0) {
           assignment = 'maintenance';
-          reasoning.push('Fitness certificate expires within 24 hours');
+          if (expiredCerts.length > 0) {
+            reasoning.push(`${expiredCerts.length} fitness certificate(s) expired`);
+          }
+          if (suspendedCerts.length > 0) {
+            reasoning.push(`${suspendedCerts.length} fitness certificate(s) suspended`);
+          }
+        } else if (expiringSoonCerts.length > 0) {
+          assignment = 'maintenance';
+          reasoning.push(`${expiringSoonCerts.length} fitness certificate(s) expiring soon`);
         } else if (trainset.currentIssues.some(issue => issue.severity === 'critical')) {
           assignment = 'maintenance';
           reasoning.push('Critical issues require immediate attention');
-        } else if (trainset.status === 'service' && index < 12) {
-          assignment = 'service';
-          reasoning.push('Optimal for peak hour service');
-          reasoning.push('Mileage within acceptable range');
-        } else if (trainset.branding && trainset.branding.completedHours < trainset.branding.contractHours) {
-          assignment = 'service';
-          reasoning.push('Branding contract requirements');
         } else {
-          assignment = 'standby';
-          reasoning.push('Available for backup service');
+          // More balanced assignment logic
+          const randomFactor = Math.random();
+          const mileageFactor = trainset.mileage < 150000 ? 0.3 : 0.1; // Prefer lower mileage
+          const issueFactor = trainset.currentIssues.length === 0 ? 0.4 : 0.1; // Prefer no issues
+          const brandingFactor = trainset.branding && trainset.branding.completedHours < trainset.branding.contractHours ? 0.3 : 0;
+          const fitnessFactor = validCerts.length === 3 ? 0.3 : 0.1; // Prefer all valid certificates
+          
+          const serviceScore = randomFactor + mileageFactor + issueFactor + brandingFactor + fitnessFactor;
+          
+          if (serviceScore > 0.7) {
+            assignment = 'service';
+            reasoning.push('Optimal for service based on multiple factors');
+            if (trainset.mileage < 100000) reasoning.push('Low mileage - efficient operation');
+            if (trainset.currentIssues.length === 0) reasoning.push('No current issues');
+            if (validCerts.length === 3) reasoning.push('All fitness certificates valid');
+            if (trainset.branding && trainset.branding.completedHours < trainset.branding.contractHours) {
+              reasoning.push('Branding contract requirements');
+            }
+          } else if (serviceScore > 0.5) {
+            assignment = 'cleaning';
+            reasoning.push('Scheduled for deep cleaning and detailing');
+            reasoning.push('Good condition - ready for service after cleaning');
+            if (trainset.mileage > 100000) reasoning.push('Higher mileage - requires thorough cleaning');
+            if (trainset.currentIssues.some(issue => issue.severity === 'low')) {
+              reasoning.push('Minor issues will be addressed during cleaning');
+            }
+          } else if (serviceScore > 0.3) {
+            assignment = 'standby';
+            reasoning.push('Available for backup service');
+            reasoning.push('Good condition but not optimal for primary service');
+          } else {
+            assignment = 'maintenance';
+            reasoning.push('Scheduled for routine maintenance');
+            reasoning.push('Optimizing fleet maintenance schedule');
+          }
         }
         
         return {
@@ -81,8 +118,13 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     // Calculate individual train-specific metrics
     const calculateTrainMetrics = (trainset: Trainset, assignment: string) => {
       const now = new Date();
-      const fitnessExpiry = new Date(trainset.fitnessExpiry);
       const nextMaintenance = new Date(trainset.nextMaintenance);
+      
+      // Check fitness certificate status
+      const expiredCerts = trainset.fitnessCertificates.filter(cert => cert.status === 'expired');
+      const expiringSoonCerts = trainset.fitnessCertificates.filter(cert => cert.status === 'expiring_soon');
+      const suspendedCerts = trainset.fitnessCertificates.filter(cert => cert.status === 'suspended');
+      const validCerts = trainset.fitnessCertificates.filter(cert => cert.status === 'valid');
       
       // Service Readiness Score (0-100)
       let serviceReadiness = 0;
@@ -90,10 +132,18 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // Base score for being assigned to service
         serviceReadiness = 60;
         
-        // Add points for good condition
-        const hoursUntilFitnessExpiry = (fitnessExpiry.getTime() - now.getTime()) / (1000 * 60 * 60);
-        if (hoursUntilFitnessExpiry > 48) serviceReadiness += 20;
-        else if (hoursUntilFitnessExpiry > 24) serviceReadiness += 10;
+        // Fitness certificate scoring
+        if (expiredCerts.length > 0 || suspendedCerts.length > 0) {
+          serviceReadiness = 0; // Cannot be in service with expired/suspended certs
+        } else if (expiringSoonCerts.length > 0) {
+          serviceReadiness = 20; // Very low score for expiring certs
+        } else if (validCerts.length === 3) {
+          serviceReadiness += 25; // All certificates valid
+        } else if (validCerts.length === 2) {
+          serviceReadiness += 15; // Most certificates valid
+        } else if (validCerts.length === 1) {
+          serviceReadiness += 5; // Some certificates valid
+        }
         
         // Add points for low mileage
         if (trainset.mileage < 50000) serviceReadiness += 15;
@@ -107,6 +157,14 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         if (trainset.branding && trainset.branding.completedHours < trainset.branding.contractHours) {
           serviceReadiness += 5;
         }
+      } else if (assignment === 'cleaning') {
+        serviceReadiness = 50; // Good score for cleaning - ready for service after
+        // Add points for fitness certificates
+        if (validCerts.length === 3) serviceReadiness += 20;
+        else if (validCerts.length === 2) serviceReadiness += 10;
+        // Add points for low issues
+        const totalIssues = trainset.currentIssues.length;
+        serviceReadiness += Math.max(0, 10 - (totalIssues * 2));
       } else if (assignment === 'standby') {
         serviceReadiness = 40; // Lower score for standby
       } else {
@@ -115,7 +173,6 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       // Overall Score (0-100) - weighted combination
       const maintenanceUrgency = (nextMaintenance.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-      const fitnessUrgency = (fitnessExpiry.getTime() - now.getTime()) / (1000 * 60 * 60);
       
       let overallScore = serviceReadiness;
       
@@ -123,9 +180,14 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (maintenanceUrgency < 7) overallScore -= 20; // Maintenance due soon
       else if (maintenanceUrgency < 14) overallScore -= 10;
       
-      // Adjust based on fitness certificate
-      if (fitnessUrgency < 12) overallScore -= 30; // Fitness expires soon
-      else if (fitnessUrgency < 24) overallScore -= 15;
+      // Adjust based on fitness certificates
+      if (expiredCerts.length > 0 || suspendedCerts.length > 0) {
+        overallScore -= 50; // Major penalty for expired/suspended certs
+      } else if (expiringSoonCerts.length > 0) {
+        overallScore -= 30; // Penalty for expiring certs
+      } else if (validCerts.length < 3) {
+        overallScore -= 15; // Penalty for incomplete certificates
+      }
       
       // Adjust based on issues
       const totalIssues = trainset.currentIssues.length;
@@ -140,6 +202,7 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     
     // Calculate fleet-wide metrics
     const serviceCount = result.schedule.filter(s => s.assignment === 'service').length;
+    const cleaningCount = result.schedule.filter(s => s.assignment === 'cleaning').length;
     const maintenanceCount = result.schedule.filter(s => s.assignment === 'maintenance').length;
     const standbyCount = result.schedule.filter(s => s.assignment === 'standby').length;
     
@@ -148,7 +211,7 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       maintenanceCompliance: (maintenanceCount / trainsets.length) * 100,
       brandingCompliance: 92.4,
       mileageBalance: 89.6,
-      overallScore: ((serviceCount * 0.4) + (standbyCount * 0.3) + (maintenanceCount * 0.3)) / trainsets.length * 100
+      overallScore: ((serviceCount * 0.4) + (cleaningCount * 0.3) + (standbyCount * 0.2) + (maintenanceCount * 0.1)) / trainsets.length * 100
     };
     
     // Add individual train metrics to each schedule item
@@ -203,11 +266,17 @@ export const OptimizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return optimizationResult?.conflicts.length || 0;
   }, [optimizationResult]);
 
+  const resetOptimization = useCallback(() => {
+    setOptimizationResult(null);
+    setIsOptimizing(false);
+  }, []);
+
   return (
     <OptimizationContext.Provider value={{
       optimizationResult,
       setOptimizationResult,
       runOptimization,
+      resetOptimization,
       isOptimizing,
       getStatusCounts,
       getCriticalIssuesCount

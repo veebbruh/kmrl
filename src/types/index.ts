@@ -1,3 +1,19 @@
+export interface FitnessCertificate {
+  id: string;
+  trainsetId: string;
+  department: 'rolling_stock' | 'signalling' | 'telecom';
+  issuedDate: string;
+  expiryDate: string;
+  validityDays: number;
+  status: 'valid' | 'expiring_soon' | 'expired' | 'suspended';
+  issuedBy: string;
+  certificateNumber: string;
+  conditions: string[];
+  lastInspection: string;
+  nextInspection: string;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+}
+
 export interface Trainset {
   id: string;
   number: string;
@@ -9,6 +25,7 @@ export interface Trainset {
   lastMaintenance: string;
   nextMaintenance: string;
   fitnessExpiry: string;
+  fitnessCertificates: FitnessCertificate[];
   branding?: {
     advertiser: string;
     contractHours: number;
@@ -68,7 +85,7 @@ export interface SchedulingConstraint {
 export interface OptimizationResult {
   schedule: {
     trainsetId: string;
-    assignment: 'service' | 'standby' | 'maintenance';
+    assignment: 'service' | 'standby' | 'maintenance' | 'cleaning';
     reasoning: string[];
     confidence: number;
     serviceReadiness?: number;
